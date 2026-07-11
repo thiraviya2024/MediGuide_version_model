@@ -12,6 +12,13 @@ from utils.ai_helper import ask_ai
 from utils.validator import is_medical_document
 from utils.report_classifier import detect_report_type
 
+# 1. NEW IMPORT
+from utils.evaluation_metrics import (
+    log_performance,
+    get_metrics_df,
+    get_performance_summary
+)
+
 # ====================== SESSION STATE ======================
 if "page" not in st.session_state:
     st.session_state.page = "welcome"
@@ -273,17 +280,16 @@ else:
                     response = "Please upload a medical report first."
                 latency_ms = round((time.time() - start_time) * 1000, 2)
 
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            # NEW: Log performance using the evaluation module
+            log_performance(
+                st.session_state.performance_logs,
+                model=st.session_state.selected_model,
+                question=prompt,
+                response_time_ms=latency_ms,
+                answer=response
+            )
 
-            # Performance Logging
-            st.session_state.performance_logs.append({
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "model": st.session_state.selected_model,
-                "question": prompt[:100] + "..." if len(prompt) > 100 else prompt,
-                "response_time_ms": latency_ms,
-                "status": "Success"
-            })
-            
+            st.session_state.messages.append({"role": "assistant", "content": response})
             st.rerun()
 
     # ==================== SETTINGS ====================
@@ -295,23 +301,35 @@ else:
             st.info("You can change AI Model from the sidebar.")
         
         with tab2:
-            if st.session_state.performance_logs:
-                df_logs = pd.DataFrame(st.session_state.performance_logs)
-                st.dataframe(df_logs, use_container_width=True)
-                
-                csv = df_logs.to_csv(index=False).encode('utf-8')
+            # NEW: Enhanced Performance Metrics UI
+            df = get_metrics_df(st.session_state.performance_logs)
+
+            if not df.empty:
+                summary = get_performance_summary(df)
+
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("Average Response", f"{summary['avg_time']} ms")
+                c2.metric("Total Queries", summary["total_queries"])
+                c3.metric("Fastest Model", summary["fastest_model"])
+                c4.metric("Avg Answer Length", f"{summary['avg_answer_length']} chars")
+
+                st.markdown("### Response Time by Query")
+                st.line_chart(df.set_index("timestamp")["response_time_ms"])
+
+                st.markdown("### Average Response Time per Model")
+                st.bar_chart(df.groupby("model")["response_time_ms"].mean())
+
+                st.dataframe(df, use_container_width=True)
+
+                csv = df.to_csv(index=False).encode("utf-8")
                 st.download_button(
-                    label="⬇️ Download Performance Metrics as CSV",
-                    data=csv,
-                    file_name=f"MediGuide_Performance_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                    mime="text/csv",
+                    "⬇ Download Performance Metrics",
+                    csv,
+                    "performance_metrics.csv",
+                    "text/csv",
                     use_container_width=True
                 )
-                
-                avg_time = df_logs["response_time_ms"].mean()
-                st.metric("Average Response Time", f"{avg_time:.2f} ms")
-                st.metric("Total Queries", len(df_logs))
             else:
-                st.info("No performance data yet. Use AI Chat to generate logs.")
+                st.info("No performance data available. Use AI Chat to generate logs.")
 
     st.caption("MediGuide AI v2.1 • Secure Medical Intelligence")
