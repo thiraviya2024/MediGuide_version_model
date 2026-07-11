@@ -1,0 +1,10 @@
+1. Explain the patient's Hb value.
+2. What are the abnormal parameters in this report?
+3. Summarize this medical report.
+4. What does high glucose indicate?
+5. Explain the prescribed medicines.
+6. Are there any risk factors?
+7. What lifestyle suggestions are mentioned?
+8. Identify important findings.
+9. Explain this report in simple language.
+10. What information is missing from this report?

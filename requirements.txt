@@ -1,0 +1,17 @@
+streamlit
+groq
+langchain
+langchain-community
+langchain-text-splitters
+faiss-cpu
+sentence-transformers
+transformers
+torch
+torchvision
+pypdf
+pandas
+numpy
+matplotlib
+plotly
+openpyxl
+python-dotenv

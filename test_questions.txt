@@ -1,0 +1,5 @@
+1. What is the patient's diagnosis?
+2. Explain abnormal values in this report.
+3. What medicines are prescribed?
+4. Summarize this medical report.
+5. Are there any risk factors?
