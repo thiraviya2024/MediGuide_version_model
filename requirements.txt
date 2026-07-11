@@ -9,8 +9,9 @@ langchain-huggingface
 faiss-cpu
 
 sentence-transformers
-
 transformers
+
+torch
 
 pypdf
 pandas
